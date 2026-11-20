@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UMKM SmartCost Prototipe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a shipped Indonesian fintech-style app for warung owners — plain, warm, numeric, no jargon.
+   IDEA: the phone in the owner's hand at the stall: one live cost ledger that reacts when market prices move.
+   PICTURE: the working app itself, in a phone housing, with a demo guide beside it for the judges.
+   COLOUR and TYPE: ELEVORA navy #0B3D91 dominant, teal #127A8A support, orange #E08A00 for price alerts; Plus Jakarta Sans.
+   LAYOUT: phone left-of-centre, guide panel right above 900px; below 600px the app fills the screen. */
+:root{color-scheme:light dark;--bg:light-dark(#e9eff6,#0c1626);--ink:light-dark(#122033,#e8eef6);--quiet:light-dark(#566579,#9fb0c4);
+--navy:#0B3D91;--teal:#127A8A;--mint:#7FE3C8;--orange:#E08A00;--red:#D64545;--green:#13915F;--app:#F3F6FA;--card:#fff;--line:#E3E8EE;--tx:#1F2A37;--mu:#5B6B7D}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'Plus Jakarta Sans',system-ui,sans-serif;overflow-x:clip}
+button,input,select{font:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:clamp(16px,3vw,40px) max(4vw,16px);display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}
+.head{grid-column:1/-1}
+.head h1{margin:0;font-size:clamp(26px,3.4vw,40px);line-height:1.08;font-weight:800;text-wrap:balance}
+.head p{margin:8px 0 0;color:var(--quiet);max-width:70ch}
+.phone{width:400px;height:820px;border-radius:46px;background:#0d1b2a;padding:12px;box-shadow:0 30px 60px -20px rgba(11,61,145,.45),0 0 0 1px rgba(255,255,255,.06) inset}
+.app{position:relative;width:100%;height:100%;border-radius:35px;background:var(--app);overflow:hidden;color:var(--tx);display:flex;flex-direction:column}
+.top{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff;padding:22px 20px 18px}
+.brand{font-size:12px;font-weight:700;letter-spacing:.5px;opacity:.9;display:flex;align-items:center;gap:8px}
+.top h2{margin:6px 0 0;font-size:20px;line-height:1.2}
+.top small{opacity:.85}
+.scr{flex:1;overflow-y:auto;padding:4px 0 90px}
+.card{background:var(--card);margin:12px 14px;border-radius:16px;padding:14px;box-shadow:0 1px 3px rgba(16,32,60,.07)}
+.lbl{font-size:13px;color:var(--mu)}
+.big{font-size:40px;font-weight:800;color:var(--navy);line-height:1.1;font-variant-numeric:tabular-nums}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.row:last-child{border:0}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.g{color:var(--green);font-weight:700}.r{color:var(--red);font-weight:700}.a{color:var(--orange);font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.mini{background:var(--app);border-radius:10px;padding:8px 10px;font-size:13px}
+.mini b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.alert{background:#FFF4E5;border:1px solid #F5CF94}
+.alert h3{margin:0 0 2px;font-size:15px;color:#9a5a00}
+.btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn{min-height:40px;border:0;border-radius:10px;padding:8px 14px;font-weight:700;font-size:14px;cursor:pointer;background:var(--navy);color:#fff}
+.btn.alt{background:#E6EEF8;color:var(--navy)}.btn.tl{background:var(--teal)}
+.btn:focus-visible,.nav button:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+.nav{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:6px 6px 12px}
+.nav button{background:none;border:0;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;color:var(--mu);cursor:pointer;border-radius:12px}
+.nav button svg{width:22px;height:22px}
+.nav button.on{color:var(--navy);font-weight:700;background:#EEF3FB}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--tx);min-height:36px}
+.chip.on{border-color:var(--teal);background:#E6F4F2;color:var(--teal);font-weight:700}
+input[type=number],select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:16px;background:#fff;color:var(--tx)}
+.ing{display:grid;grid-template-columns:minmax(0,1.4fr) 84px minmax(0,1fr);gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.ing small{display:block;color:var(--mu);font-size:12px}
+input[type=range]{width:100%;accent-color:var(--orange);height:32px}
+.opt{border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;font-size:14px;background:#fff}
+.opt.best{border-color:var(--teal);background:#E9F6F5}
+.opt h4{margin:0;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.opt p{margin:3px 0 0;color:var(--mu);font-size:13px}
+.tag{align-self:flex-start;font-size:11px;font-weight:700;background:var(--teal);color:#fff;border-radius:6px;padding:2px 6px;white-space:nowrap}
+.ai{background:linear-gradient(135deg,var(--navy),var(--teal));color:#fff}
+.ai .lbl{color:#cfe3ff}
+.chat{display:flex;flex-direction:column;gap:8px;padding:12px 14px}
+.b{max-width:86%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.4;white-space:pre-line}
+.me{align-self:flex-end;background:#DCF8C6;border-bottom-right-radius:4px}
+.bot{align-self:flex-start;background:#fff;border-bottom-left-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.wa{background:#075E54}
+.compose[hidden]{display:none}
+.compose{position:absolute;left:0;right:0;bottom:76px;background:var(--app);padding:8px 10px;display:flex;gap:6px;border-top:1px solid var(--line)}
+.compose input{flex:1;border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;font-size:16px;min-height:44px}
+.icb{width:44px;height:44px;border-radius:50%;border:0;background:#128C7E;color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.icb.cam{background:#E6EEF8;color:var(--navy)}
+.icb svg{width:20px;height:20px}
+.toast{position:absolute;left:14px;right:14px;bottom:92px;background:#122033;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.guide{background:light-dark(#fff,#13233a);border-radius:20px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.guide h2{margin:0 0 4px;font-size:22px}
+.guide ol{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:10px}
+.guide li button{width:100%;text-align:left;display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start;background:light-dark(#F3F6FA,#0f1d31);border:1.5px solid transparent;border-radius:14px;padding:12px;cursor:pointer;color:var(--ink)}
+.guide li button:hover{border-color:var(--teal)}
+.guide li b{display:block}
+.guide li span.n{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-weight:800}
+.guide .note{font-size:13px;color:var(--quiet);margin-top:14px}
+.reset{margin-top:12px;background:none;border:1.5px solid var(--quiet);color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:44px}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;justify-items:center}.guide{width:100%;max-width:560px}}
+@media (max-width:600px){.wrap{padding:0;gap:0}.head{padding:16px}.phone{width:100%;height:100svh;border-radius:0;padding:0;box-shadow:none}.app{border-radius:0}.guide{border-radius:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <h1>UMKM SmartCost: coba langsung cara warung menjaga margin saat harga bahan naik</h1>
+    <p>Prototipe interaktif Tim ELEVORA untuk IER 11.0 2026. Semua angka dihitung langsung di halaman ini dari data contoh Warung Mie Sitoluama.</p>
+  </header>
+  <div class="phone"><div class="app" id="app">
+    <div class="top" id="top"></div>
+    <div class="scr" id="scr"></div>
+    <div class="compose" id="compose" hidden>
+      <button class="icb cam" id="cam" aria-label="Kirim foto nota (simulasi OCR)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      <input id="msg" placeholder="Ketik, mis. beli ayam 5 kg 185rb" aria-label="Pesan">
+      <button class="icb" id="send" aria-label="Kirim"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></button>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+    <nav class="nav" id="nav">
+      <button data-t="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9H3z"/></svg>Beranda</button>
+      <button data-t="resep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Resep &amp; HPP</button>
+      <button data-t="sim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Simulasi</button>
+      <button data-t="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l1.5-4A8 8 0 1 1 9 19z"/></svg>Catat WA</button>
+    </nav>
+  </div></div>
+  <aside class="guide">
+    <h2>Skenario demo 1 menit</h2>
+    <div style="color:var(--quiet)">Klik langkah untuk membuka layarnya di HP.</div>
+    <ol id="steps">
+      <li><button data-go="home"><span class="n">1</span><span><b>Lihat peringatan harga</b>Beranda menunjukkan harga ayam di Pasar Balige naik 12% dan menu yang terdampak.</span></button></li>
+      <li><button data-go="sim"><span class="n">2</span><span><b>Simulasikan guncangan biaya</b>Geser slider kenaikan ayam; HPP dan margin semua menu berubah seketika.</span></button></li>
+      <li><button data-go="sim2"><span class="n">3</span><span><b>Pilih opsi adaptif</b>Bandingkan naik harga, kurangi porsi, substitusi, dan subsidi silang; terapkan rekomendasi.</span></button></li>
+      <li><button data-go="chat"><span class="n">4</span><span><b>Catat lewat WhatsApp</b>Ketik "beli ayam 5 kg 185rb" atau "jual mie ayam 10"; HPP dan stok langsung diperbarui.</span></button></li>
+    </ol>
+    <p class="note">Data contoh untuk demonstrasi. Harga pasar di prototipe ini bukan data resmi PIHPS atau Bapanas; pada aplikasi akhir harga diambil dari sumber tersebut dan survei pasar lokal. Rekomendasi di prototipe memakai aturan sederhana.</p>
+    <button class="reset" id="reset">Kembalikan data contoh</button>
+  </aside>
+</div>
+<script>
+{
+const ING0 = {
+  ayam:{n:'Ayam potong',u:'kg',p:33000,mkt:36960,src:'Survei Pasar Balige',stock:4,min:3},
+  mie:{n:'Mie basah',u:'kg',p:15000,mkt:15000,src:'Survei Pasar Laguboti',stock:6,min:3},
+  sawi:{n:'Sawi hijau',u:'kg',p:10000,mkt:10500,src:'Survei Pasar Laguboti',stock:2,min:1},
+  sapi:{n:'Daging sapi',u:'kg',p:130000,mkt:132000,src:'PIHPS (contoh)',stock:2,min:1},
+  tapioka:{n:'Tepung tapioka',u:'kg',p:17000,mkt:18000,src:'Bapanas (contoh)',stock:1.2,min:2},
+  beras:{n:'Beras medium',u:'kg',p:14000,mkt:14000,src:'PIHPS (contoh)',stock:10,min:5},
+  telur:{n:'Telur ayam',u:'kg',p:30000,mkt:31200,src:'PIHPS (contoh)',stock:3,min:2},
+  terong:{n:'Terong belanda',u:'kg',p:20000,mkt:20000,src:'Survei Pasar Balige',stock:5,min:3},
+  gula:{n:'Gula pasir',u:'kg',p:18000,mkt:18400,src:'Bapanas (contoh)',stock:4,min:2}};
+const MENU0 = [
+  {id:'mieayam',n:'Mie Ayam',price:13000,sold:24,other:500,otherN:'bumbu, minyak, gas',items:{ayam:0.15,mie:0.1,sawi:0.03}},
+  {id:'bakso',n:'Bakso Urat',price:15000,sold:18,other:600,otherN:'bumbu, gas',items:{sapi:0.05,tapioka:0.03,mie:0.05}},
+  {id:'nasgor',n:'Nasi Goreng',price:15000,sold:15,other:800,otherN:'bumbu, minyak, gas',items:{beras:0.15,telur:0.06,ayam:0.05}},
+  {id:'jus',n:'Jus Terong Belanda',price:10000,sold:30,other:1100,otherN:'es, gelas, sedotan',items:{terong:0.111,gula:0.025}}];
+const SUB = {ayam:{n:'Ayam bagian paha',p:29000,q:'tekstur sedikit berbeda, uji ke pelanggan dulu'},sapi:{n:'Campuran sapi 70% + ayam 30%',p:100900,q:'rasa bakso berubah, cocok untuk menu baru'},gula:{n:'Gula aren cair',p:16000,q:'warna jus lebih gelap'},tapioka:{n:'Tepung sagu lokal',p:15000,q:'kekenyalan sedikit berbeda'}};
+const clone = o => JSON.parse(JSON.stringify(o));
+let S;
+const fresh = () => ({ing:clone(ING0),menus:clone(MENU0),tab:'home',menu:'mieayam',simIng:'ayam',pct:12,target:42,student:true,payable:0,
+  chat:[{w:'bot',t:'Halo Mak Butet! Kirim catatan belanja atau penjualan di sini.\nContoh: "beli ayam 5 kg 185rb", "jual mie ayam 10", "stok", atau kirim foto nota.'}]});
+try{ S = JSON.parse(localStorage.getItem('smartcost-demo')) || fresh(); }catch(e){ S = fresh(); }
+const save = () => { try{ localStorage.setItem('smartcost-demo', JSON.stringify(S)); }catch(e){} };
+const rp = x => 'Rp' + Math.round(x).toLocaleString('id-ID');
+const pc = x => (x*100).toLocaleString('id-ID',{maximumFractionDigits:1}) + '%';
+const $ = id => document.getElementById(id);
+const M = id => S.menus.find(m => m.id === id);
+const hpp = (m, mult = {}, qty = {}) => m.other + Object.entries(m.items).reduce((s,[k,q]) => s + (qty[k] ?? q) * S.ing[k].p * (mult[k] ?? 1), 0);
+const margin = (price, h) => (price - h) / price;
+const mcls = x => x >= 0.42 ? 'g' : x >= 0.35 ? 'a' : 'r';
+let tt;
+const toast = t => { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600); };
+const alerts = () => Object.entries(S.ing).filter(([k,i]) => Math.abs(i.mkt/i.p - 1) >= 0.03).map(([k,i]) => ({k, i, d:i.mkt/i.p - 1, menus:S.menus.filter(m => m.items[k])}));
+
+function top(title, sub, wa){
+  $('top').className = 'top' + (wa ? ' wa' : '');
+  $('top').innerHTML = `<div class="brand"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7FE3C8" stroke-width="2.5"><path d="M3 17l6-6 4 4 8-8"/></svg>${wa ? 'SMARTCOST BOT' : 'UMKM SMARTCOST'}</div>${sub ? `<small>${sub}</small>` : ''}<h2>${title}</h2>`;
+}
+function home(){
+  top('Selamat malam, Mak Butet','Warung Mie Sitoluama');
+  const rev = S.menus.reduce((s,m) => s + m.sold*m.price, 0), cost = S.menus.reduce((s,m) => s + m.sold*hpp(m), 0), gm = (rev-cost)/rev;
+  const al = alerts(), low = Object.values(S.ing).filter(i => i.stock < i.min);
+  return `<div class="card"><div class="lbl">Margin kotor hari ini</div><div class="big ${''}">${pc(gm)}</div><div class="lbl">target ${S.target}% · ${gm*100 >= S.target ? '<span class="g">di atas target</span>' : '<span class="r">di bawah target</span>'}</div>
+  <div class="grid2"><div class="mini">Penjualan<b>${rp(rev)}</b></div><div class="mini">HPP terpakai<b>${rp(cost)}</b></div><div class="mini">Laba kotor<b>${rp(rev-cost)}</b></div><div class="mini">Utang pemasok minggu ini<b>${rp(S.payable)}</b></div></div></div>
+  ${al.map(a => `<div class="card alert"><h3>${a.i.n} ${a.d>0?'naik':'turun'} ${pc(Math.abs(a.d))}</h3><div class="lbl">Sumber: ${a.i.src}</div><div class="lbl">${rp(a.i.p)} → ${rp(a.i.mkt)}/${a.i.u} · ${a.menus.length ? 'terdampak: ' + a.menus.map(m=>m.n).join(', ') : 'tidak dipakai di menu'}</div>
+   <div class="btns"><button class="btn" data-sim="${a.k}" data-pct="${Math.round(a.d*100)}">Simulasikan</button><button class="btn alt" data-apply="${a.k}">Perbarui harga</button></div></div>`).join('')}
+  <div class="card"><div class="lbl" style="margin-bottom:4px">HPP dan margin per menu</div>${S.menus.map(m => { const h = hpp(m), g = margin(m.price,h); return `<div class="row"><span>${m.n}<br><small class="lbl">jual ${rp(m.price)} · terjual ${m.sold}</small></span><span class="num">${rp(h)} · <span class="${mcls(g)}">${pc(g)}</span></span></div>`; }).join('')}</div>
+  <div class="card"><div class="lbl" style="margin-bottom:4px">Stok bahan</div>${low.length ? low.map(i => `<div class="row"><span><span class="r">●</span> ${i.n} menipis</span><span class="num">sisa ${i.stock.toLocaleString('id-ID')} ${i.u}</span></div>`).join('') : '<div class="row"><span>Semua stok aman</span></div>'}</div>`;
+}
+function resep(){
+  top('Resep & HPP','Ubah jumlah atau harga, HPP dihitung otomatis');
+  const m = M(S.menu), h = hpp(m), g = margin(m.price,h);
+  return `<div class="card"><div class="chips">${S.menus.map(x => `<button class="chip ${x.id===m.id?'on':''}" data-menu="${x.id}">${x.n}</button>`).join('')}</div></div>
+  <div class="card"><div class="lbl">HPP per porsi ${m.n}</div><div class="big">${rp(h)}</div><div class="lbl">margin <span class="${mcls(g)}">${pc(g)}</span> pada harga jual ${rp(m.price)}</div>
+  <label class="lbl" style="display:block;margin-top:10px" for="price">Harga jual (Rp)</label><input id="price" type="number" step="500" value="${m.price}"></div>
+  <div class="card"><div class="ing" style="font-weight:700;font-size:12px;color:var(--mu)"><span>Bahan</span><span>Jumlah/porsi</span><span class="num">Biaya</span></div>
+  ${Object.entries(m.items).map(([k,q]) => { const i = S.ing[k]; return `<div class="ing"><span>${i.n}<small>${rp(i.p)}/${i.u}</small></span><input type="number" step="0.005" min="0" value="${q}" data-qty="${k}" aria-label="Jumlah ${i.n} dalam ${i.u}"><span class="num">${rp(q*i.p)}</span></div>`; }).join('')}
+  <div class="ing"><span>Biaya lain<small>${m.otherN}</small></span><input type="number" step="50" min="0" value="${m.other}" data-other="1" aria-label="Biaya lain per porsi"><span class="num">${rp(m.other)}</span></div></div>`;
+}
+function options(m, k, mult){
+  const h0 = hpp(m), h1 = hpp(m, {[k]:mult}), t = S.target/100, out = [];
+  const need = Math.ceil(h1/(1-t)/500)*500;
+  out.push({id:'price', t:`Naikkan harga ke ${rp(need)}`, d:`Margin kembali ${pc(margin(need,h1))}; harga naik ${rp(need-m.price)}.`, keep:false, ok:true, apply:{price:need}});
+  const unit = S.ing[k].p*mult, maxH = m.price*(1-t), cut = Math.max(0,(h1-maxH)/unit), q0 = m.items[k], q1 = q0 - cut, share = cut/q0;
+  if (share <= 0) out.push({id:'portion', t:'Porsi tetap', d:'Margin masih di atas target, porsi tidak perlu diubah.', keep:true, ok:true});
+  else if (share <= 0.15) out.push({id:'portion', t:`Kurangi ${S.ing[k].n.toLowerCase()} ${Math.round(q0*1000)} g → ${Math.round(q1*1000)} g`, d:`Turun ${pc(share)} (batas mutu 15%); harga tetap ${rp(m.price)}, margin ${pc(S.target/100)}.`, keep:true, ok:true, apply:{qty:[k,+q1.toFixed(3)]}});
+  else { const q2 = q0*0.85, h2 = hpp(m,{[k]:mult},{[k]:q2}); out.push({id:'portion', t:`Kurangi porsi maksimal 15%`, d:`Margin hanya ${pc(margin(m.price,h2))}; belum mencapai target tanpa menurunkan mutu.`, keep:true, ok:false}); }
+  const sb = SUB[k];
+  if (sb){ const hs = h1 - q0*unit + q0*sb.p; out.push({id:'sub', t:`Ganti dengan ${sb.n.toLowerCase()}`, d:`HPP ${rp(hs)}, margin ${pc(margin(m.price,hs))}; ${sb.q}.`, keep:true, ok:margin(m.price,hs) >= t, test:true}); }
+  const best = S.menus.filter(x => x.id !== m.id).map(x => ({x, u:x.price - hpp(x,{[k]:mult})})).sort((a,b) => b.u-a.u)[0];
+  const loss = (h1-h0)*m.sold, extra = best ? loss/best.u : 0;
+  out.push({id:'cross', t:`Harga tetap, dorong paket ${m.n} + ${best.x.n}`, d:`Tambahan biaya ${rp(loss)}/hari tertutup oleh ${extra.toLocaleString('id-ID',{maximumFractionDigits:1})} porsi ${best.x.n.toLowerCase()} ekstra per hari.`, keep:true, ok:extra <= best.x.sold*0.2});
+  let pick = S.student ? out.find(o => o.keep && o.ok && !o.test) || out.find(o => o.keep && o.ok) || out[0] : out[0];
+  if (h1 <= h0) pick = out.find(o => o.id==='portion');
+  return {out, pick, h0, h1};
+}
+function sim(){
+  top('Simulator Guncangan Biaya','Uji kenaikan harga sebelum terjadi');
+  const k = S.simIng, mult = 1 + S.pct/100, i = S.ing[k], used = S.menus.filter(m => m.items[k]);
+  if (!M(S.menu).items[k]) S.menu = (used[0] || S.menus[0]).id;
+  const m = M(S.menu), o = options(m, k, mult);
+  return `<div class="card"><label class="lbl" for="simIng">Bahan baku</label><select id="simIng">${Object.entries(S.ing).filter(([kk]) => S.menus.some(x => x.items[kk])).map(([kk,v]) => `<option value="${kk}" ${kk===k?'selected':''}>${v.n}</option>`).join('')}</select>
+   <div class="row" style="border:0"><span><b>${rp(i.p)}</b> → <b class="${S.pct>0?'r':'g'}">${rp(i.p*mult)}</b>/${i.u}</span><span class="${S.pct>0?'r':'g'} num">${S.pct>0?'+':''}${S.pct}%</span></div>
+   <input type="range" id="pct" min="-20" max="50" step="1" value="${S.pct}" aria-label="Perubahan harga ${i.n} dalam persen"></div>
+  <div class="card"><div class="lbl" style="margin-bottom:4px">Dampak ke menu</div>${used.map(x => { const a = hpp(x), b = hpp(x,{[k]:mult}); return `<div class="row"><span>${x.n}</span><span class="num">${pc(margin(x.price,a))} → <span class="${mcls(margin(x.price,b))}">${pc(margin(x.price,b))}</span><br><small class="lbl">HPP ${rp(a)} → ${rp(b)}</small></span></div>`; }).join('')}</div>
+  <div class="card" id="opts"><div class="lbl">Opsi adaptif untuk</div><div class="chips" style="margin:6px 0 8px">${used.map(x => `<button class="chip ${x.id===m.id?'on':''}" data-smenu="${x.id}">${x.n}</button>`).join('')}</div>
+   <div class="grid2"><label class="mini">Target margin<input id="target" type="number" min="10" max="80" value="${S.target}"></label><label class="mini" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="student" ${S.student?'checked':''} style="width:22px;height:22px;flex:none;accent-color:#127A8A"> Pelanggan utama mahasiswa (sensitif harga)</label></div>
+   ${o.out.map(x => `<div class="opt ${x===o.pick?'best':''}"><h4><span>${x.t}</span>${x===o.pick?'<span class="tag">Disarankan</span>':''}</h4><p>${x.d}</p></div>`).join('')}</div>
+  <div class="card ai"><div class="lbl">Rekomendasi SmartCost</div><div style="font-size:15px;margin-top:4px">${o.h1 <= o.h0 ? `Harga ${i.n.toLowerCase()} turun; margin ${m.n} naik ke ${pc(margin(m.price,o.h1))}. Pertahankan harga jual.` : `${o.pick.t}. ${S.student ? 'Harga untuk mahasiswa dipertahankan agar pelanggan tetap datang.' : 'Pelanggan tidak terlalu sensitif harga, jadi penyesuaian harga paling sederhana.'}`}</div>
+   ${o.pick.apply ? `<div class="btns"><button class="btn tl" id="applyOpt">Terapkan rekomendasi</button></div>` : ''}</div>`;
+}
+const ALIAS = {ayam:'ayam',mie:'mie',sawi:'sawi',sapi:'sapi',daging:'sapi',tapioka:'tapioka',tepung:'tapioka',beras:'beras',telur:'telur',terong:'terong',gula:'gula'};
+const MALIAS = [['mie ayam','mieayam'],['bakso','bakso'],['nasi goreng','nasgor'],['nasgor','nasgor'],['jus','jus']];
+const money = s => { s = s.toLowerCase().replace(/\s/g,''); const mm = s.match(/^([\d.,]+)(rb|ribu|k|jt|juta)?$/); if (!mm) return NaN; let n = mm[1]; n = mm[2] ? parseFloat(n.replace(',','.')) : parseFloat(n.replace(/\./g,'').replace(',','.')); if (mm[2]==='rb'||mm[2]==='ribu'||mm[2]==='k') n *= 1e3; if (mm[2]==='jt'||mm[2]==='juta') n *= 1e6; return n; };
+function buy(k, qty, unit, total){
+  const i = S.ing[k], kg = /^(g|gr|gram)$/.test(unit||'') ? qty/1000 : qty, up = total/kg, old = i.p;
+  i.p = Math.round(up); i.stock = +(i.stock + kg).toFixed(2); S.payable += total;
+  const aff = S.menus.filter(m => m.items[k]).map(m => `${m.n}: HPP ${rp(hpp(m))}, margin ${pc(margin(m.price,hpp(m)))}`).join('\n');
+  return `✔ Tercatat: ${i.n} ${kg.toLocaleString('id-ID')} kg, ${rp(total)} (${rp(up)}/kg, ${up>=old?'+':''}${pc(up/old-1)} dari harga lama).\n${aff ? aff + '\n' : ''}Stok kini ${i.stock.toLocaleString('id-ID')} kg.`;
+}
+function reply(t){
+  const s = t.toLowerCase().trim();
+  let m = s.match(/^beli\s+([a-z ]+?)\s+([\d.,]+)\s*(kg|g|gr|gram)?\s+(rp\.?\s*)?([\d.,]+\s*(rb|ribu|k|jt|juta)?)$/);
+  if (m){ const k = ALIAS[m[1].split(' ')[0]], q = parseFloat(m[2].replace(',','.')), tot = money(m[5]); if (!k) return `Bahan "${m[1]}" belum ada di daftar. Coba: ayam, mie, sawi, sapi, tapioka, beras, telur, terong, gula.`; if (!(q>0) || !(tot>0)) return 'Jumlah atau harga belum terbaca. Contoh: beli ayam 5 kg 185rb'; return buy(k, q, m[3], tot); }
+  m = s.match(/^jual\s+(.+?)\s+(\d+)$/);
+  if (m){ const f = MALIAS.find(([a]) => m[1].startsWith(a)); if (!f) return 'Menu belum dikenal. Coba: mie ayam, bakso, nasi goreng, jus.'; const x = M(f[1]), n = +m[2]; x.sold += n; Object.entries(x.items).forEach(([k,q]) => { S.ing[k].stock = Math.max(0, +(S.ing[k].stock - q*n).toFixed(2)); }); const low = Object.values(S.ing).filter(i => i.stock < i.min).map(i => i.n); return `✔ ${n} porsi ${x.n} tercatat: ${rp(n*x.price)} penjualan, laba kotor ${rp(n*(x.price-hpp(x)))}.${low.length ? '\n⚠ Stok menipis: ' + low.join(', ') + '.' : ''}`; }
+  if (/^stok/.test(s)) return Object.values(S.ing).map(i => `${i.stock < i.min ? '⚠ ' : ''}${i.n}: ${i.stock.toLocaleString('id-ID')} ${i.u}`).join('\n');
+  m = s.match(/^harga\s+([a-z]+)/);
+  if (m && ALIAS[m[1]]){ const i = S.ing[ALIAS[m[1]]]; return `${i.n}: harga Anda ${rp(i.p)}/${i.u}; pasar ${rp(i.mkt)}/${i.u} (${i.src}).`; }
+  if (/^hpp/.test(s)) return S.menus.map(x => `${x.n}: ${rp(hpp(x))} (margin ${pc(margin(x.price,hpp(x)))})`).join('\n');
+  return 'Perintah yang dikenali:\n• beli ayam 5 kg 185rb\n• jual mie ayam 10\n• stok\n• harga ayam\n• hpp';
+}
+function chat(){
+  top('Catat Cepat via WhatsApp','Simulasi bot, tanpa mengirim pesan sungguhan', true);
+  return `<div class="chat" id="log">${S.chat.map(c => `<div class="b ${c.w==='me'?'me':'bot'}">${c.t.replace(/</g,'&lt;')}</div>`).join('')}</div>
+  <div class="chips" style="padding:0 14px 12px">${['beli ayam 5 kg 185rb','jual mie ayam 10','stok','hpp'].map(x => `<button class="chip" data-say="${x}">${x}</button>`).join('')}</div>`;
+}
+function send(t){ if (!t.trim()) return; S.chat.push({w:'me',t}); S.chat.push({w:'bot',t:reply(t)}); render(); }
+function render(){
+  const tab = S.tab;
+  $('scr').innerHTML = tab==='home' ? home() : tab==='resep' ? resep() : tab==='sim' ? sim() : chat();
+  $('compose').hidden = tab !== 'chat';
+  $('scr').style.paddingBottom = tab==='chat' ? '150px' : '90px';
+  document.querySelectorAll('.nav button').forEach(b => b.classList.toggle('on', b.dataset.t===tab));
+  if (tab==='chat') $('scr').scrollTop = $('scr').scrollHeight;
+  save();
+}
+const go = (t, keep) => { S.tab = t; render(); if (!keep) $('scr').scrollTop = 0; };
+$('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) go(b.dataset.t); });
+$('steps').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const g = b.dataset.go;
+  if (g==='sim' || g==='sim2'){ S.simIng='ayam'; S.pct=12; S.menu='mieayam'; go('sim'); if (g==='sim2') $('opts').scrollIntoView({behavior:'smooth'}); }
+  else go(g); });
+$('scr').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.sim){ S.simIng = b.dataset.sim; S.pct = +b.dataset.pct; go('sim'); }
+  else if (b.dataset.apply){ const i = S.ing[b.dataset.apply]; i.p = i.mkt; toast(`Harga ${i.n.toLowerCase()} diperbarui ke ${rp(i.p)}/${i.u}`); render(); }
+  else if (b.dataset.menu){ S.menu = b.dataset.menu; render(); }
+  else if (b.dataset.smenu){ S.menu = b.dataset.smenu; const y = $('scr').scrollTop; render(); $('scr').scrollTop = y; }
+  else if (b.dataset.say){ send(b.dataset.say); }
+  else if (b.id==='applyOpt'){ const m = M(S.menu), o = options(m, S.simIng, 1+S.pct/100), a = o.pick.apply;
+    const i = S.ing[S.simIng]; i.p = Math.round(i.p*(1+S.pct/100)); i.mkt = i.p;
+    if (a.price) m.price = a.price; if (a.qty) m.items[a.qty[0]] = a.qty[1];
+    S.pct = 0; toast(`Diterapkan: ${o.pick.t}. Harga ${i.n.toLowerCase()} kini ${rp(i.p)}/${i.u}.`); go('home'); }
+});
+$('scr').addEventListener('input', e => {
+  const t = e.target, m = M(S.menu);
+  if (t.id==='pct'){ S.pct = +t.value; const y = $('scr').scrollTop; render(); $('scr').scrollTop = y; const p = $('pct'); if (p) p.focus(); }
+});
+$('scr').addEventListener('change', e => {
+  const t = e.target, m = M(S.menu), y = $('scr').scrollTop;
+  if (t.id==='price' && +t.value > 0) m.price = +t.value;
+  else if (t.dataset.qty && +t.value >= 0) m.items[t.dataset.qty] = +t.value;
+  else if (t.dataset.other && +t.value >= 0) m.other = +t.value;
+  else if (t.id==='simIng'){ S.simIng = t.value; }
+  else if (t.id==='target' && +t.value > 0 && +t.value < 95) S.target = +t.value;
+  else if (t.id==='student') S.student = t.checked;
+  else return;
+  render(); $('scr').scrollTop = y;
+});
+$('send').addEventListener('click', () => { send($('msg').value); $('msg').value = ''; $('msg').focus(); });
+$('msg').addEventListener('keydown', e => { if (e.key==='Enter'){ send($('msg').value); $('msg').value = ''; } });
+$('cam').addEventListener('click', () => {
+  S.chat.push({w:'me',t:'[Foto nota pemasok: 3 baris]'});
+  S.chat.push({w:'bot',t:'Membaca nota (simulasi OCR)...\n' + [buy('ayam',5,'kg',185000), buy('tapioka',2,'kg',36000), buy('gula',3,'kg',55200)].join('\n\n')});
+  render();
+});
+$('reset').addEventListener('click', () => { S = fresh(); render(); toast('Data contoh dikembalikan'); });
+render();
+}
+</script>
+</body>
+</html>
